@@ -1,0 +1,70 @@
+{
+  "_comment": "All coordinates are in SCREEN pixels (not scaled). Use the calibrate tool to find your values.",
+
+  "capture": {
+    "monitor_index": 1,
+    "fps": 4,
+    "tip_popup_ttl_ms": 8000
+  },
+
+  "zones": {
+    "token_balance": {
+      "enabled": true,
+      "_comment": "The running token total shown on your Chaturbate dashboard/OBS scene.",
+      "x": 100,
+      "y": 80,
+      "w": 220,
+      "h": 48,
+      "label": "balance"
+    },
+    "tip_popup": {
+      "enabled": true,
+      "_comment": "The pop-up that appears when someone tips (usually top-right of CB window).",
+      "x": 900,
+      "y": 30,
+      "w": 480,
+      "h": 90,
+      "label": "tip_popup"
+    },
+    "viewer_count": {
+      "enabled": true,
+      "_comment": "Viewer counter region.",
+      "x": 340,
+      "y": 80,
+      "w": 160,
+      "h": 48,
+      "label": "viewers"
+    }
+  },
+
+  "ocr": {
+    "engine": "easyocr",
+    "_engine_options": ["easyocr", "tesseract"],
+    "languages": ["en"],
+    "upscale_factor": 3,
+    "denoise": true,
+    "threshold_value": 145
+  },
+
+  "popup_patterns": {
+    "_comment": "Regex patterns to parse tip popup text. Adjust if CB changes their format.",
+    "tip_with_message": "^(.+?)\\s+tipped\\s+(\\d[\\d,]*)\\s+tokens?(?:\\s*[:\\-]\\s*(.+))?$",
+    "tip_simple":       "^(.+?)\\s+(\\d[\\d,]*)\\s+tokens?$",
+    "anon_tip":         "^(Anonymous|Someone)\\s+tipped\\s+(\\d[\\d,]*)\\s+tokens?$"
+  },
+
+  "backend": {
+    "event_endpoint": "http://127.0.0.1:3000/api/ocr-tick",
+    "health_endpoint": "http://127.0.0.1:3000/api/health",
+    "timeout_s": 2,
+    "retry_attempts": 3,
+    "platform": "chaturbate"
+  },
+
+  "debug": {
+    "save_frames": false,
+    "frames_dir": "./debug_frames",
+    "log_level": "INFO",
+    "show_preview": false
+  }
+}

@@ -1,0 +1,28 @@
+# LBC OCR Agent — Python dependencies
+# Install with:  pip install -r requirements.txt
+
+# ── Screen capture ─────────────────────────────────────────────
+mss>=9.0.1               # Fast cross-platform screen capture (no X11 required on Linux)
+
+# ── Computer vision / image preprocessing ──────────────────────
+opencv-python>=4.9.0     # cv2: resize, threshold, denoise, imshow
+numpy>=1.26.0            # Required by cv2 and mss
+
+# ── OCR engines (pick ONE and comment out the other) ───────────
+
+# Option A — EasyOCR (recommended: handles compressed stream fonts better)
+easyocr>=1.7.1
+
+# Option B — Tesseract (faster, but needs Tesseract binary installed separately)
+# pytesseract>=0.3.10
+# On Ubuntu/Debian:  sudo apt install tesseract-ocr
+# On macOS:          brew install tesseract
+# On Windows:        https://github.com/UB-Mannheim/tesseract/wiki
+
+# ── HTTP dispatch to backend ────────────────────────────────────
+requests>=2.31.0         # HTTP client with retry support
+
+# ── (Optional) GPU acceleration for EasyOCR ────────────────────
+# Uncomment if you have an NVIDIA GPU + CUDA installed
+# torch>=2.2.0+cu118       # install via https://pytorch.org
+# torchvision>=0.17.0+cu118
