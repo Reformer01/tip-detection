@@ -21,6 +21,10 @@ async function startServer() {
   let currentBalance = 0;
   let prevTotalsByUser = new Map<string, number>();
   
+  // Tip Reconstruction State
+  let pendingPopups: Array<{ username: string, amount?: number, message?: string, ts: number }> = [];
+  let pendingDeltas: Array<{ amount: number, ts: number }> = [];
+  
   // Base payload structure
   let payload = {
     "schema": "lbc.overlay.leaderboard.v1",
@@ -141,18 +145,61 @@ async function startServer() {
     ws.send(JSON.stringify(payload));
   });
 
+  // API Endpoint for OCR Agent Config
+  app.get('/api/ocr-config', (req, res) => {
+    res.json({
+      platform: "chaturbate",
+      captureRegions: {
+        balance: { x: 100, y: 50, width: 200, height: 40 },
+        popup: { x: 800, y: 600, width: 400, height: 150 }
+      },
+      parsingRules: {
+        balanceRegex: "^(?:\\s*\\d{1,3}(?:,\\d{3})*|\\d+)\\s*tokens?$",
+        popupRegex: "^(?<username>[a-zA-Z0-9_]+)\\s+tipped\\s+(?<amount>\\d+)\\s*tokens?(?:\\s*:\\s*(?<message>.*))?$"
+      },
+      pollIntervalMs: 500
+    });
+  });
+
   // API Endpoint for OCR Agent
   app.post('/api/ocr-tick', (req, res) => {
-    const { eventId, ts, type, platform, username, amount, message, isAnon, source } = req.body;
+    const { balance, popup, type, amount, username, message, eventId, ts, platform, isAnon, source } = req.body;
     
-    // We only care about tip events from the OCR agent
-    if (type !== 'tip' || !amount || amount <= 0) {
-      return res.json({ success: false, reason: 'Invalid or missing tip amount' });
+    // Legacy direct tip support
+    if (type === 'tip' && amount > 0) {
+      processTip(username || 'Anonymous', amount, message || 'Tip received!', platform, source, eventId, ts);
+      return res.json({ success: true, tipDetected: true, tipAmount: amount, tipper: username || 'Anonymous' });
     }
 
-    const tipAmount = amount;
-    const tipper = username || 'Anonymous';
+    let tipOccurred = false;
+    let tipAmount = 0;
+    let tipUser = 'Anonymous';
 
+    // 1. Check if we received a popup
+    if (popup) {
+      tipOccurred = true;
+      tipAmount = popup.amount;
+      tipUser = popup.username;
+    } 
+    // 2. Or if we just received a balance increase without a popup
+    else if (balance !== undefined && balance > currentBalance) {
+      tipOccurred = true;
+      tipAmount = balance - currentBalance;
+    }
+
+    // Update current balance
+    if (balance !== undefined) {
+      currentBalance = balance;
+    }
+
+    if (tipOccurred) {
+      processTip(tipUser, tipAmount, popup?.message || 'Thanks for the tip!', platform || 'chaturbate', 'ocr');
+    }
+
+    res.json({ success: true, currentBalance, tipOccurred });
+  });
+
+  function processTip(tipper: string, tipAmount: number, message: string, platform: string = "chaturbate", source: string = "unknown", eventId?: string, ts?: string) {
     // Update leaderboard
     let userTotal = prevTotalsByUser.get(tipper) || 0;
     userTotal += tipAmount;
@@ -179,7 +226,7 @@ async function startServer() {
 
     // Update events
     const tipEvent = {
-      eventId: eventId || `evt_${Date.now()}`,
+      eventId: eventId || `evt_${Date.now()}_${Math.floor(Math.random()*1000)}`,
       ts: ts || new Date().toISOString(),
       type: "tip",
       platform: platform || "chaturbate",
@@ -188,7 +235,7 @@ async function startServer() {
       amount: tipAmount,
       currency: "tokens",
       message: message || "Tip received!",
-      isAnon: isAnon || false,
+      isAnon: tipper === 'Anonymous',
       meta: { rawEventType: "tip", txRef: "", device: "unknown", ipHash: "", source: source || "unknown" }
     };
     
@@ -229,9 +276,7 @@ async function startServer() {
     }
 
     broadcast();
-
-    res.json({ success: true, tipDetected: true, tipAmount, tipper });
-  });
+  }
 
   // Vite middleware for development
   if (process.env.NODE_ENV !== 'production') {

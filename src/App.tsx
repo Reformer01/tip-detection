@@ -1,6 +1,15 @@
 import { useEffect, useState, useRef } from 'react';
 import { Crown, Unlock } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { Header } from './components/Header';
+import { SideNav } from './components/SideNav';
+import { LeaderboardPanel } from './components/LeaderboardPanel';
+import { SpotlightPanel } from './components/SpotlightPanel';
+import { UnlockPathPanel } from './components/UnlockPathPanel';
+import { RulesPanel } from './components/RulesPanel';
+import { MissionPanel } from './components/MissionPanel';
+import { LiveActionPanel } from './components/LiveActionPanel';
+import { ToastNotification } from './components/ToastNotification';
 
 const DEMO_PAYLOAD = {
   model: {
@@ -65,6 +74,7 @@ export default function App() {
   const [pulse, setPulse] = useState(false);
   const [toast, setToast] = useState<any>(null);
   const [activeFaceIndex, setActiveFaceIndex] = useState(0);
+  const [isDebug, setIsDebug] = useState(false);
   
   const wsRef = useRef<WebSocket | null>(null);
   const hasCelebrated = useRef(false);
@@ -99,7 +109,10 @@ export default function App() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const isDemo = params.get('demo') === '1';
+    const isDebugMode = params.get('debug') === '1';
     const wsUrlParam = params.get('ws');
+
+    setIsDebug(isDebugMode);
 
     if (isDemo) {
       setPayload(DEMO_PAYLOAD);
@@ -151,16 +164,26 @@ export default function App() {
         try {
           const data = JSON.parse(event.data);
           
-          setPayload((prevPayload: any) => {
-            // Check if there's a new tip to trigger pulse and toast
-            if (prevPayload && data.events?.latestTip && data.events.latestTip.eventId !== prevPayload.events?.latestTip?.eventId) {
-              setPulse(true);
-              setToast(data.events.latestTip);
-              setTimeout(() => setPulse(false), 1000);
-              setTimeout(() => setToast(null), 4000);
-            }
-            return data;
-          });
+          if (data.type === 'STATE_UPDATE') {
+            setPayload(data.payload);
+          } else if (data.type === 'NEW_TIP') {
+            setPulse(true);
+            setToast(data.tip);
+            setTimeout(() => setPulse(false), 1000);
+            setTimeout(() => setToast(null), 4000);
+          } else {
+            // Fallback for legacy payload format
+            setPayload((prevPayload: any) => {
+              // Check if there's a new tip to trigger pulse and toast
+              if (prevPayload && data.events?.latestTip && data.events.latestTip.eventId !== prevPayload.events?.latestTip?.eventId) {
+                setPulse(true);
+                setToast(data.events.latestTip);
+                setTimeout(() => setPulse(false), 1000);
+                setTimeout(() => setToast(null), 4000);
+              }
+              return data;
+            });
+          }
         } catch (e) {
           console.error("Failed to parse WS message", e);
         }
@@ -270,181 +293,107 @@ export default function App() {
   const diamondClass = payload.leaderboard?.topFans?.some((f: any) => f.tier === 'diamond') ? 'diamond' : '';
 
   return (
-    <div className={`stage ${pulse ? 'pulse' : ''} ${heatClass} ${diamondClass}`}>
-      <canvas ref={canvasRef} id="particles"></canvas>
+    <div className={`relative w-full h-screen overflow-hidden bg-surface text-on-surface font-body selection:bg-primary/20 selection:text-primary ${pulse ? 'pulse' : ''} ${heatClass} ${diamondClass}`}>
+      <canvas ref={canvasRef} id="particles" className="absolute inset-0 z-0 pointer-events-none"></canvas>
       
-      {/* HUD Top */}
-      <div className="hudTop">
-        <div className="brand">
-          <img src="https://picsum.photos/seed/carmen/100/100" alt="Avatar" referrerPolicy="no-referrer" />
-          <div>
-            <div className="hTitle">{payload.model?.stageName || 'Model'}</div>
-            <div className="hSub">{payload.model?.showTime || 'Live Now'}</div>
-          </div>
-        </div>
-        <div className="langs">
-          {payload.model?.languages?.map((l: string, i: number) => (
-            <div key={l} className={`lang ${i === 0 ? 'active' : ''}`}>{l.toUpperCase()}</div>
-          ))}
-        </div>
-        <div className="stats" style={{ display: 'flex', gap: '15px' }}>
-          <div className="line"><span className="lbl">Viewers</span><span className="big">{payload.room?.viewerCount || 0}</span></div>
-          <div className="line"><span className="lbl">Heat</span><span className="big">{payload.room?.heat?.score?.toFixed(2) || '0.00'}</span></div>
-        </div>
+      {/* Background Effects */}
+      <div className="fixed inset-0 z-0 pointer-events-none">
+          {/* Deep navy base */}
+          <div className="absolute inset-0 bg-[#0d0d1c]"></div>
+          
+          {/* Animated heat glows */}
+          <div className="absolute -top-[20%] -left-[10%] w-[70%] h-[70%] heat-glow opacity-60 mix-blend-screen animate-[pulse_8s_ease-in-out_infinite]"></div>
+          <div className="absolute top-[40%] -right-[20%] w-[80%] h-[80%] heat-glow opacity-40 mix-blend-screen animate-[pulse_12s_ease-in-out_infinite_reverse]"></div>
+          <div className="absolute -bottom-[30%] left-[10%] w-[60%] h-[60%] heat-glow opacity-50 mix-blend-screen animate-[pulse_10s_ease-in-out_infinite]"></div>
+          
+          {/* Subtle grid overlay */}
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PHBhdGggZD0iTTAgMGg0MHY0MEgwVjB6bTM5IDM5VjFoLTM4djM4aDM4eiIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjAyKSIgZmlsbC1ydWxlPSJldmVub2RkIi8+PC9zdmc+')] opacity-30 mix-blend-overlay"></div>
       </div>
 
-      <div className="groundGlow"></div>
+      {/* Fixed Top HUD */}
+      <Header payload={payload} />
 
-      <div className="float">
-        <div className="scene">
-          <div 
-            className="rig" 
-            style={{ 
-              '--camX': '-10deg', 
-              '--camY': `${currentYRot}deg`,
-              '--parX': `${parallax.x}deg`,
-              '--parY': `${parallax.y}deg`
-            } as any}
-          >
-            <div className="cube">
-              {/* Leaderboard (Front) */}
-              <div className={`face front ${activeFaceIndex === 0 ? 'active' : ''}`}>
-                <div className="faceBase"></div>
-                <div className="sweep"></div>
-                <div className="pad">
-                  <div className="title">Top Fans</div>
-                  <div className="rows">
-                    {payload.leaderboard?.topFans?.slice(0, 5).map((fan: any, i: number) => (
-                      <div key={fan.userId} className={`row tier-${fan.tier} ${i === 0 ? 'latest' : ''}`}>
-                        <div className="rank">{fan.rank}</div>
-                        <div className="name">{fan.username}</div>
-                        <div className="val">{fan.value}</div>
-                        {fan.isWhale && <div className="crown"><Crown size={12} /></div>}
-                      </div>
-                    ))}
-                    {(!payload.leaderboard?.topFans || payload.leaderboard.topFans.length === 0) && (
-                      <div className="sub" style={{ textAlign: 'center', marginTop: '20px' }}>No tips yet. Be the first!</div>
-                    )}
-                  </div>
-                </div>
-              </div>
+      {/* Fixed Side Nav (Collapsible) */}
+      <SideNav activeFaceIndex={activeFaceIndex} setActiveFaceIndex={setActiveFaceIndex} />
 
-              {/* Spotlight (Right) */}
-              <div className={`face right ${activeFaceIndex === 1 ? 'active' : ''}`}>
-                <div className="faceBase"></div>
-                <div className="sweep"></div>
-                <div className="pad">
-                  <div className="title">Spotlight</div>
-                  {payload.events?.latestTip ? (
-                    <div className="spot">
-                      <div className="spotTop">
-                        <div className="badgeTier gold">LATEST TIP</div>
-                      </div>
-                      <div className="spotName">{payload.events.latestTip.username}</div>
-                      <div className="spotMeta">
-                        <span>Tipped <b>{payload.events.latestTip.amount}</b> tokens</span>
-                      </div>
-                      <div className="spotMsg">"{payload.events.latestTip.message || 'Thanks for the tip!'}"</div>
-                    </div>
-                  ) : (
-                    <div className="sub" style={{ textAlign: 'center', marginTop: '20px' }}>Waiting for a tip...</div>
-                  )}
+      {/* Main Content Area */}
+      <main className="relative z-10 w-full h-screen flex items-center justify-center p-20 pointer-events-none">
+          
+          {/* Central Layout Container */}
+          <div className="w-full max-w-6xl h-[70vh] flex gap-6 pointer-events-auto">
+              
+              {/* Left Panel: Dynamic based on activeFaceIndex */}
+              <div className="flex-1 glass-panel rounded-3xl border border-primary/20 shadow-2xl flex flex-col overflow-hidden relative group">
+                  {/* Decorative top edge */}
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
                   
-                  <div className="title" style={{ marginTop: '15px' }}>Recent</div>
-                  <div className="pushList">
-                    {payload.events?.recentContributors?.slice(0, 3).map((c: any, i: number) => (
-                      <div key={i} className="pushItem">
-                        <span className="u">{c.username}</span>
-                        <span className="t">{c.amount}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                  {activeFaceIndex === 0 && <LeaderboardPanel payload={payload} />}
+                  {activeFaceIndex === 1 && <SpotlightPanel payload={payload} />}
+                  {activeFaceIndex === 2 && <UnlockPathPanel payload={payload} />}
+                  {activeFaceIndex === 3 && <RulesPanel payload={payload} />}
               </div>
 
-              {/* Unlock Path (Back) */}
-              <div className={`face back ${activeFaceIndex === 2 ? 'active' : ''}`}>
-                <div className="faceBase"></div>
-                <div className="sweep"></div>
-                <div className="pad">
-                  <div className="title">Unlock Path</div>
-                  <div className="missionWrap">
-                    <div className="mTitle">{payload.mission?.title}</div>
-                    <div className="mLabel">{payload.mission?.label}</div>
-                    <div className="barOuter">
-                      <div className="barFill" style={{ width: `${payload.mission?.progressPct || 0}%` }}></div>
-                    </div>
-                    <div className="mNums">
-                      <span>Current: <b>{payload.mission?.current || 0}</b></span>
-                      <span>Target: <b>{payload.mission?.target || 0}</b></span>
-                    </div>
-                  </div>
+              {/* Right Panel: Dynamic Content (Mission / Spotlight) */}
+              <div className="w-96 flex flex-col gap-6">
                   
-                  <div className="actList" style={{ marginTop: '15px' }}>
-                    {payload.unlockLadder?.steps?.map((step: any, i: number) => (
-                      <div key={i} className={`actItem ${step.state === 'just_unlocked' ? 'just_unlocked' : ''}`}>
-                        <div className="actLeft">
-                          <div className="actIcon"><Unlock size={16} /></div>
-                          <div className="actText">
-                            <div className="actName">{step.label}</div>
-                            <div className="actNeed">{step.tokens} tokens</div>
-                          </div>
-                        </div>
-                        <div className="actRight">
-                          <div className={`actState ${step.state}`}>{step.state.replace('_', ' ')}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
+                  {/* Active Mission */}
+                  <MissionPanel payload={payload} />
 
-              {/* Rules (Left) */}
-              <div className={`face left ${activeFaceIndex === 3 ? 'active' : ''}`}>
-                <div className="faceBase"></div>
-                <div className="sweep"></div>
-                <div className="pad">
-                  <div className="rulesTitle">Room Rules</div>
-                  <div className="ruleRow">
-                    <div className="badge silver">Rule 1</div>
-                    <div className="ruleTxt">Be respectful</div>
-                  </div>
-                  <div className="ruleRow">
-                    <div className="badge gold">Rule 2</div>
-                    <div className="ruleTxt">No spamming</div>
-                  </div>
-                  <div className="ruleRow">
-                    <div className="badge diamond">Rule 3</div>
-                    <div className="ruleTxt">Tips = Rewards</div>
-                  </div>
-                  
-                  <div className="rulesTitle" style={{ marginTop: '15px' }}>Active Goal</div>
-                  <div className="card">
-                    <div className="line">
-                      <span className="lbl">Status</span>
-                      <span className="activePill"><div className="dot"></div> ACTIVE</span>
-                    </div>
-                    <div className="line" style={{ marginTop: '10px' }}>
-                      <span className="lbl">Phase</span>
-                      <span className="big">{payload.mission?.phase?.replace('_', ' ') || 'BUILDING'}</span>
-                    </div>
-                  </div>
-                </div>
+                  {/* Latest Action / Spotlight */}
+                  <LiveActionPanel payload={payload} />
+
               </div>
-            </div>
           </div>
-        </div>
+      </main>
+
+      {/* Bottom Toast Notifications */}
+      <ToastNotification toast={toast} />
+
+      {isDebug && <OcrDebugger />}
+    </div>
+  );
+}
+
+function OcrDebugger() {
+  const [balance, setBalance] = useState(1000);
+  const [popupUsername, setPopupUsername] = useState('TestUser');
+  const [popupAmount, setPopupAmount] = useState(100);
+  
+  const sendBalance = async () => {
+    await fetch('/api/ocr-tick', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ balance })
+    });
+  };
+
+  const sendPopup = async () => {
+    await fetch('/api/ocr-tick', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        popup: { username: popupUsername, amount: popupAmount, message: 'Test tip!' }
+      })
+    });
+  };
+
+  return (
+    <div style={{ position: 'fixed', bottom: 20, right: 20, background: '#111', padding: 20, borderRadius: 8, border: '1px solid #333', color: '#fff', zIndex: 9999, display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <h3 style={{ margin: 0, fontSize: 16 }}>OCR Debugger</h3>
+      
+      <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+        <input type="number" value={balance} onChange={e => setBalance(Number(e.target.value))} style={{ width: 80, background: '#222', color: '#fff', border: '1px solid #444', padding: 4 }} />
+        <button onClick={sendBalance} style={{ background: '#3b82f6', color: '#fff', border: 'none', padding: '4px 8px', borderRadius: 4, cursor: 'pointer' }}>Send Balance</button>
       </div>
-
-      {/* Toast */}
-      <div className="toastWrap">
-        <div className={`toast ${toast ? 'show' : ''}`}>
-          <div className="l">
-            <div className="k">NEW TIP</div>
-            <div className="m">{toast?.username} sent {toast?.amount} tokens!</div>
-          </div>
-          <div className="v">+{toast?.amount}</div>
-        </div>
+      
+      <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+        <input type="text" value={popupUsername} onChange={e => setPopupUsername(e.target.value)} style={{ width: 80, background: '#222', color: '#fff', border: '1px solid #444', padding: 4 }} />
+        <input type="number" value={popupAmount} onChange={e => setPopupAmount(Number(e.target.value))} style={{ width: 60, background: '#222', color: '#fff', border: '1px solid #444', padding: 4 }} />
+        <button onClick={sendPopup} style={{ background: '#10b981', color: '#fff', border: 'none', padding: '4px 8px', borderRadius: 4, cursor: 'pointer' }}>Send Popup</button>
+      </div>
+      
+      <div style={{ fontSize: 12, color: '#888', maxWidth: 250 }}>
+        To test reconstruction: Send a popup, then send a balance that is higher by the popup amount.
       </div>
     </div>
   );
