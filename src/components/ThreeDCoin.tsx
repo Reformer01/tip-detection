@@ -8,7 +8,6 @@ function Coin() {
 
   useFrame((state, delta) => {
     if (meshRef.current) {
-      // Rotate around the global Y axis to spin like a coin
       meshRef.current.rotation.y += delta * 2;
     }
   });
@@ -16,7 +15,7 @@ function Coin() {
   return (
     <Float speed={4} rotationIntensity={0.5} floatIntensity={2}>
       <group ref={meshRef}>
-        {/* The cylinder's default faces are on XZ. We rotate it 90deg on X to face the camera (XY plane) */}
+        {}
         <mesh castShadow rotation={[Math.PI / 2, 0, 0]}>
           <cylinderGeometry args={[1.5, 1.5, 0.2, 32]} />
           <meshStandardMaterial color="#FFE792" metalness={0.8} roughness={0.2} />

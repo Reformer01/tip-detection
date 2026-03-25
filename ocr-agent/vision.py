@@ -24,9 +24,7 @@ import numpy as np
 logger = logging.getLogger("vision")
 
 
-# ---------------------------------------------------------------------------
-# Data models
-# ---------------------------------------------------------------------------
+
 
 @dataclass
 class Zone:
@@ -88,9 +86,7 @@ def _iso(ts: float) -> str:
     return datetime.datetime.utcfromtimestamp(ts).strftime("%Y-%m-%dT%H:%M:%S.000Z")
 
 
-# ---------------------------------------------------------------------------
-# Image preprocessor
-# ---------------------------------------------------------------------------
+
 
 class ImagePreprocessor:
     """
@@ -135,9 +131,7 @@ class ImagePreprocessor:
         cv2.imwrite(path, img)
 
 
-# ---------------------------------------------------------------------------
-# OCR engine wrappers
-# ---------------------------------------------------------------------------
+
 
 class OCREngine:
     """Abstract base — subclass for EasyOCR or Tesseract."""
@@ -180,9 +174,6 @@ def build_ocr_engine(cfg: dict) -> OCREngine:
         raise ValueError(f"Unknown OCR engine: {engine_name!r}")
 
 
-# ---------------------------------------------------------------------------
-# Tip popup parser
-# ---------------------------------------------------------------------------
 
 class TipPopupParser:
     """
@@ -237,9 +228,7 @@ class TipPopupParser:
         return None
 
 
-# ---------------------------------------------------------------------------
-# Balance reader (for delta-based fallback tip detection)
-# ---------------------------------------------------------------------------
+
 
 _DIGIT_STRIP = re.compile(r"[^\d]")
 
@@ -253,9 +242,6 @@ def parse_balance(raw: str) -> Optional[int]:
     return val if 0 <= val <= 9_999_999 else None
 
 
-# ---------------------------------------------------------------------------
-# Screen capturer
-# ---------------------------------------------------------------------------
 
 class ScreenCapturer:
     """

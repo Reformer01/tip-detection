@@ -10,8 +10,7 @@ export function RotatingCubePanel({ activeFaceIndex, payload }: { activeFaceInde
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
   
-  // Calculate rotation based on active face
-  // 0: front (0deg), 1: right (-90deg), 2: back (-180deg), 3: left (90deg)
+
   const yRotations = [0, -90, -180, 90];
   let targetRotation = yRotations[activeFaceIndex] || 0;
 
@@ -25,7 +24,6 @@ export function RotatingCubePanel({ activeFaceIndex, payload }: { activeFaceInde
     });
   }, [targetRotation]);
 
-  // Dynamically calculate scale based on container size
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -33,7 +31,6 @@ export function RotatingCubePanel({ activeFaceIndex, payload }: { activeFaceInde
     const observer = new ResizeObserver((entries) => {
       for (let entry of entries) {
         const { width, height } = entry.contentRect;
-        // The cube is 480x560. We add some padding (e.g., 40px) to ensure it doesn't touch the edges.
         const scaleX = width / (480 + 40);
         const scaleY = height / (560 + 40);
         setScale(Math.min(1, scaleX, scaleY));
