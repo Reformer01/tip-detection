@@ -10,6 +10,7 @@ import { RulesPanel } from './components/RulesPanel';
 import { MissionPanel } from './components/MissionPanel';
 import { LiveActionPanel } from './components/LiveActionPanel';
 import { ToastNotification } from './components/ToastNotification';
+import { RotatingCubePanel } from './components/RotatingCubePanel';
 
 const DEMO_PAYLOAD = {
   model: {
@@ -317,24 +318,18 @@ export default function App() {
       <SideNav activeFaceIndex={activeFaceIndex} setActiveFaceIndex={setActiveFaceIndex} />
 
       {/* Main Content Area */}
-      <main className="relative z-10 w-full h-screen flex items-center justify-center p-20 pointer-events-none">
+      <main className="relative z-10 w-full h-screen flex flex-col lg:flex-row items-center justify-center p-4 sm:p-8 lg:p-20 pt-24 pointer-events-none overflow-y-auto lg:overflow-hidden">
           
           {/* Central Layout Container */}
-          <div className="w-full max-w-6xl h-[70vh] flex gap-6 pointer-events-auto">
+          <div className="w-full max-w-6xl flex flex-col lg:flex-row gap-6 pointer-events-auto h-auto lg:h-[70vh]">
               
-              {/* Left Panel: Dynamic based on activeFaceIndex */}
-              <div className="flex-1 glass-panel rounded-3xl border border-primary/20 shadow-2xl flex flex-col overflow-hidden relative group">
-                  {/* Decorative top edge */}
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
-                  
-                  {activeFaceIndex === 0 && <LeaderboardPanel payload={payload} />}
-                  {activeFaceIndex === 1 && <SpotlightPanel payload={payload} />}
-                  {activeFaceIndex === 2 && <UnlockPathPanel payload={payload} />}
-                  {activeFaceIndex === 3 && <RulesPanel payload={payload} />}
+              {/* Left Panel: 3D Rotating Cube */}
+              <div className="w-full lg:flex-1 h-[400px] sm:h-[500px] lg:h-full shrink-0">
+                <RotatingCubePanel activeFaceIndex={activeFaceIndex} payload={payload} />
               </div>
 
               {/* Right Panel: Dynamic Content (Mission / Spotlight) */}
-              <div className="w-96 flex flex-col gap-6">
+              <div className="w-full lg:w-96 flex flex-col gap-6 shrink-0 pb-24 lg:pb-0">
                   
                   {/* Active Mission */}
                   <MissionPanel payload={payload} />
