@@ -1,20 +1,65 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Live Streaming Dashboard
 
-# Run and deploy your AI Studio app
+This project is a high-performance, interactive live streaming dashboard and overlay interface. It features real-time animations, a modular panel system (Leaderboard, Spotlight, Unlock Path, Rules), and a responsive design built with modern web technologies.
 
-This contains everything you need to run your app locally.
+## Current State
 
-View your app in AI Studio: https://ai.studio/apps/f1e28c8f-8e1e-45db-a74a-a9e9486ba687
+The application is currently a frontend prototype. The user interface and animations are fully functional, but data such as viewer counts, live tips, and chat messages are simulated for demonstration purposes.
 
-## Run Locally
+## Deployment Options (via Google AI Studio)
 
-**Prerequisites:**  Node.js
+If you are viewing this project within Google AI Studio, you have several immediate deployment options:
 
+1. Deploy to Google Cloud Run (Recommended for Production)
+   - Use the "Deploy" button in the top right corner of the interface.
+   - This packages the application and hosts it permanently on Google Cloud, providing a live, scalable production URL.
+
+2. Share a Preview Link
+   - Use the "Share" button to generate a public link for immediate sharing and feedback.
+
+3. Export the Code
+   - Access the Settings menu (gear icon) to export the repository directly to GitHub or download it as a ZIP file for self-hosting on platforms like Vercel, Netlify, or your own infrastructure.
+
+## Path to a Full Production Release
+
+To transition this application from a frontend prototype to a fully functional production system, the following backend integrations are required:
+
+### 1. Database and Authentication
+- Recommended: Firebase or Supabase.
+- Purpose: To handle real-time user authentication, persist user profiles, store chat history, and manage the state of the rules and unlock paths.
+
+### 2. Payment Processing
+- Recommended: Stripe.
+- Purpose: To allow users to securely purchase and send "tkns" (tips) to the broadcaster.
+
+### 3. Real-time Communication
+- Recommended: WebSockets (via Socket.io) or Firebase Realtime Database.
+- Purpose: To broadcast live events (tips, new viewers, chat messages) to all connected clients instantly with minimal latency.
+
+## Local Development
+
+To run this project locally outside of AI Studio, ensure you have Node.js installed.
 
 1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+   ```bash
+   npm install
+   ```
+
+2. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+3. Build for production:
+   ```bash
+   npm run build
+   ```
+
+## Technology Stack
+
+- Framework: React 18
+- Language: TypeScript
+- Build Tool: Vite
+- Styling: Tailwind CSS
+- Animations: Framer Motion
+- Icons: Material Symbols

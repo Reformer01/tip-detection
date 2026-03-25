@@ -1,6 +1,13 @@
+import { motion } from 'motion/react';
+
 export function Header({ payload }: { payload: any }) {
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 h-auto min-h-[5rem] p-4 lg:px-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pointer-events-none bg-surface/80 backdrop-blur-md border-b border-outline-variant/30">
+    <motion.header 
+      initial={{ y: -100, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ type: "spring", stiffness: 200, damping: 20 }}
+      className="fixed top-0 left-0 right-0 z-50 h-auto min-h-[5rem] p-4 lg:px-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pointer-events-none bg-surface/80 backdrop-blur-md border-b border-outline-variant/30"
+    >
       {/* Left: Avatar & Model Info */}
       <div className="flex items-center gap-3 lg:gap-4 pointer-events-auto">
         <div className="relative group cursor-pointer shrink-0">
@@ -35,6 +42,6 @@ export function Header({ payload }: { payload: any }) {
           <span className="material-symbols-outlined text-sm lg:text-base">settings</span>
         </button>
       </div>
-    </header>
+    </motion.header>
   );
 }
