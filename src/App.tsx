@@ -279,11 +279,12 @@ export default function App() {
       window.removeEventListener('resize', handleResize);
       cancelAnimationFrame(animationFrameId);
     };
-  }, [payload]); 
+  }, [payload]); // Re-run when payload changes (i.e. when canvas is mounted)
 
   if (!payload) return null;
 
- 
+  // Calculate rotation based on active face
+  // 0: front (0deg), 1: right (-90deg), 2: back (-180deg), 3: left (90deg)
   const yRotations = [0, -90, -180, 90];
   const currentYRot = yRotations[activeFaceIndex] || 0;
 
@@ -310,10 +311,13 @@ export default function App() {
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PHBhdGggZD0iTTAgMGg0MHY0MEgwVjB6bTM5IDM5VjFoLTM4djM4aDM4eiIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjAyKSIgZmlsbC1ydWxlPSJldmVub2RkIi8+PC9zdmc+')] opacity-30 mix-blend-overlay"></div>
       </div>
 
+      {/* Fixed Top HUD */}
       <Header payload={payload} />
 
+      {/* Fixed Side Nav (Collapsible) */}
       <SideNav activeFaceIndex={activeFaceIndex} setActiveFaceIndex={setActiveFaceIndex} />
 
+      {/* Main Content Area */}
       <main className="relative z-10 w-full h-screen flex flex-col lg:flex-row items-center justify-center p-4 sm:p-8 lg:p-20 pt-24 pointer-events-none overflow-y-auto lg:overflow-hidden">
           
           {/* Central Layout Container */}

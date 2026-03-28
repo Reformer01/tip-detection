@@ -43,7 +43,9 @@ from vision import (
     parse_balance,
 )
 
-
+# ---------------------------------------------------------------------------
+# Logging
+# ---------------------------------------------------------------------------
 
 logging.basicConfig(
     level=logging.INFO,
@@ -52,6 +54,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger("agent")
 
+# ---------------------------------------------------------------------------
+# Config loader
+# ---------------------------------------------------------------------------
 
 CONFIG_PATH = Path(__file__).parent / "config.json"
 
@@ -78,7 +83,9 @@ def zones_from_config(cfg: dict) -> dict[str, Zone]:
     return zones
 
 
-
+# ---------------------------------------------------------------------------
+# HTTP dispatcher (with retry)
+# ---------------------------------------------------------------------------
 
 def build_session(cfg: dict) -> requests.Session:
     session = requests.Session()
@@ -124,6 +131,9 @@ def check_backend_health(cfg: dict, session: requests.Session) -> bool:
         return False
 
 
+# ---------------------------------------------------------------------------
+# Delta-based tip reconstruction (self-healing fallback)
+# ---------------------------------------------------------------------------
 
 class BalanceDeltaDetector:
     """
@@ -175,6 +185,9 @@ class BalanceDeltaDetector:
         self._last = None
 
 
+# ---------------------------------------------------------------------------
+# Debug frame saver
+# ---------------------------------------------------------------------------
 
 def maybe_save_frame(img, zone_label: str, cfg: dict) -> None:
     if not cfg["debug"].get("save_frames"):
@@ -185,6 +198,11 @@ def maybe_save_frame(img, zone_label: str, cfg: dict) -> None:
     ts = int(time.time() * 1000)
     path = frames_dir / f"{zone_label}_{ts}.png"
     cv2.imwrite(str(path), img)
+
+
+# ---------------------------------------------------------------------------
+# Main capture loop
+# ---------------------------------------------------------------------------
 
 class OCRAgent:
     def __init__(self, cfg: dict):
@@ -211,6 +229,7 @@ class OCRAgent:
         self._last_popup_hash: Optional[str] = None
         self._popup_ttl = cfg["capture"].get("tip_popup_ttl_ms", 8000) / 1000
 
+    # ------------------------------------------------------------------
 
     def run(self) -> None:
         logger.info("=" * 60)
@@ -228,7 +247,7 @@ class OCRAgent:
             sleep_for = max(0.0, self._frame_s - elapsed)
             time.sleep(sleep_for)
 
-  
+    # ------------------------------------------------------------------
 
     def _tick(self) -> None:
         popup_fired_this_frame = False
@@ -285,7 +304,9 @@ class OCRAgent:
                 logger.debug("Viewers OCR raw: %r", text)
 
 
-
+# ---------------------------------------------------------------------------
+# CLI: Calibration helper
+# ---------------------------------------------------------------------------
 
 def run_calibration(cfg: dict) -> None:
     """
@@ -323,6 +344,9 @@ def run_calibration(cfg: dict) -> None:
     print("Calibration complete. Update config.json with final coordinates.")
 
 
+# ---------------------------------------------------------------------------
+# CLI: Single-frame test
+# ---------------------------------------------------------------------------
 
 def run_test_ocr(cfg: dict) -> None:
     capturer = ScreenCapturer(cfg["capture"].get("monitor_index", 1))
@@ -354,7 +378,9 @@ def run_test_ocr(cfg: dict) -> None:
         print()
 
 
-
+# ---------------------------------------------------------------------------
+# Entry point
+# ---------------------------------------------------------------------------
 
 def main() -> None:
     ap = argparse.ArgumentParser(description="LBC OCR Agent")

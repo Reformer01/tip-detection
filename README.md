@@ -1,11 +1,24 @@
-# Live Streaming Tip-Detection Dashboard
+# Live Streaming Dashboard
 
-This project is an interactive live streaming dashboard and overlay interface. It features a modular panel system (Leaderboard, Spotlight, Unlock Path, Rules), and a responsive design 
+This project is a high-performance, interactive live streaming dashboard and overlay interface. It features real-time animations, a modular panel system (Leaderboard, Spotlight, Unlock Path, Rules), and a responsive design built with modern web technologies.
 
 ## Current State
 
 The application is currently a frontend prototype. The user interface and animations are fully functional, but data such as viewer counts, live tips, and chat messages are simulated for demonstration purposes.
 
+## Deployment Options (via Google AI Studio)
+
+If you are viewing this project within Google AI Studio, you have several immediate deployment options:
+
+1. Deploy to Google Cloud Run (Recommended for Production)
+   - Use the "Deploy" button in the top right corner of the interface.
+   - This packages the application and hosts it permanently on Google Cloud, providing a live, scalable production URL.
+
+2. Share a Preview Link
+   - Use the "Share" button to generate a public link for immediate sharing and feedback.
+
+3. Export the Code
+   - Access the Settings menu (gear icon) to export the repository directly to GitHub or download it as a ZIP file for self-hosting on platforms like Vercel, Netlify, or your own infrastructure.
 
 ## Path to a Full Production Release
 
